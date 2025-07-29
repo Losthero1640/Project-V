@@ -1,5 +1,8 @@
 import cloudinary from "cloudinary";
 import fs from "fs";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -24,4 +27,15 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
-export { uploadOnCloudinary };
+const deleteFromCloudinary = async (publicId) => {
+  try{
+    const result =await cloudinary.uploader.destroy(publicId);
+    console.log("file is deleted from cloudinary ", publicId);
+  }catch (error) {
+    console.error("Error deleting file from Cloudinary:", error);
+    return false;
+  }
+
+}
+
+export { uploadOnCloudinary,deleteFromCloudinary };
