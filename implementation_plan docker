@@ -1,0 +1,76 @@
+# VidTube Dockerization Implementation Plan
+
+This plan details how to package the VidTube backend, frontend (using Nginx), and Redis services into Docker containers, allowing you to run the entire project with a single command on any machine.
+
+---
+
+## User Review Required
+
+Please review the proposed container layout:
+
+> [!NOTE]
+> **Container Networking**
+> In Docker, containers talk to each other using their service names as hostnames.
+> - The backend will connect to Redis via `redis://redis:6379` (instead of `127.0.0.1:6379`).
+> - The frontend Nginx proxy will forward API calls to `http://backend:3000`.
+
+> [!TIP]
+> **Database Host**
+> We will continue to use your MongoDB Atlas connection string (cloud database) so you don't lose your existing database records.
+
+---
+
+## Proposed Changes
+
+### Component 1: Backend Dockerization
+
+We will configure the Node.js backend environment for containers.
+
+#### [NEW] [Dockerfile](file:///c:/Users/ayush/OneDrive/Documents/projects/VidTube/Dockerfile)
+- Create a Dockerfile in the root folder using `node:20-alpine` (lightweight Node.js image).
+- Copy `package.json`, install dependencies, copy source files, and expose port `3000`.
+
+#### [NEW] [.dockerignore](file:///c:/Users/ayush/OneDrive/Documents/projects/VidTube/.dockerignore)
+- Ignore copying heavy local folders like `node_modules` or `.git` into the Docker image build context.
+
+---
+
+### Component 2: Frontend Dockerization (Nginx Integration)
+
+We will package the React JS frontend to be built and served by Nginx, mimicking production deployments.
+
+#### [NEW] [Dockerfile](file:///c:/Users/ayush/OneDrive/Documents/projects/VidTube/frontend/Dockerfile)
+- Create a multi-stage Dockerfile:
+  - **Stage 1 (Build)**: Use Node.js to install dependencies and run `npm run build` to compile the Vite React JS app.
+  - **Stage 2 (Serve)**: Use the official `nginx:alpine` image. Copy compiled static files from Stage 1 into Nginx's HTML folder, and copy custom Nginx settings.
+
+#### [NEW] [nginx.conf](file:///c:/Users/ayush/OneDrive/Documents/projects/VidTube/frontend/nginx.conf)
+- Write Nginx configurations for the frontend container:
+  - Serves React on port `80`.
+  - Proxies `/api/v1` calls to the `backend` container (`http://backend:3000`).
+  - Supports React Router navigation path history fallback (`try_files $uri /index.html`).
+
+#### [NEW] [.dockerignore](file:///c:/Users/ayush/OneDrive/Documents/projects/VidTube/frontend/.dockerignore)
+- Ignore `node_modules` and `dist` folders during the frontend image build.
+
+---
+
+### Component 3: Multi-Container Orchestration (Docker Compose)
+
+Stitch the services together.
+
+#### [NEW] [docker-compose.yml](file:///c:/Users/ayush/OneDrive/Documents/projects/VidTube/docker-compose.yml)
+- Define 3 services:
+  1. `redis`: Pulls `redis:alpine` and exposes port `6379`.
+  2. `backend`: Builds from root `Dockerfile`, maps environment variables (linking Redis URL to `redis://redis:6379`), and mounts to port `3000`.
+  3. `frontend`: Builds from `frontend/Dockerfile`, links to backend, and maps host port `80` (or `8080`) to the container.
+
+---
+
+## Verification Plan
+
+### Manual Verification
+- Install Docker Desktop on Windows.
+- Run `docker compose up --build` from the root folder.
+- Confirm backend logs verify connection to `redis` service.
+- Visit `http://localhost:80` (or `http://localhost:8080`) in the web browser, register/login, and verify that the application works seamlessly.

@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-primary: #0f0f13;
+  --bg-secondary: #171821;
+  --bg-tertiary: #212330;
+  --bg-hover: #2d3042;
+  
+  --accent-color: #ff3b5c;
+  --accent-gradient: linear-gradient(135deg, #ff3b5c, #ff6c3b);
+  --accent-glow: 0 0 15px rgba(255, 59, 92, 0.4);
+  
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  
+  --border-color: #26293a;
+  --border-hover: #3b3f5c;
+  
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.6);
+  
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Base Link/Button Styles */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: inherit;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+input, textarea, select {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 5px rgba(255, 59, 92, 0.25);
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(23, 24, 33, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+}
+
+/* Layout Elements */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-layout {
+  display: flex;
+  flex: 1;
+  padding-top: 70px; /* Space for fixed Navbar */
+}
+
+.content-area {
+  flex: 1;
+  padding: 24px;
+  margin-left: 240px; /* Space for Sidebar */
+  min-height: calc(100vh - 70px);
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .content-area {
+    margin-left: 0;
+    padding: 16px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s forwards ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s forwards ease-out;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+/* Forms & UI utilities */
+.btn-primary {
+  background: var(--accent-gradient);
+  color: white;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--accent-glow);
+}
+
+.btn-secondary {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+}
+.btn-secondary:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.badge {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}

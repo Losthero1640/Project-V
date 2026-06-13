@@ -1,0 +1,144 @@
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: calc(100vh - 120px);
+  padding: 20px 0;
+}
+
+.auth-card {
+  width: 480px;
+  max-width: 100%;
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.auth-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.auth-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-submit-btn {
+  margin-top: 10px;
+  height: 44px;
+  font-size: 15px;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.toggle-auth-mode-btn {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.toggle-auth-mode-btn:hover {
+  text-decoration: underline;
+}
+
+/* Previews layout for uploads */
+.previews-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.avatar-preview-container,
+.cover-preview-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.placeholder-preview {
+  background-color: var(--bg-tertiary);
+  border: 1px dashed var(--border-color);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  aspect-ratio: 1;
+  width: 64px;
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.banner {
+  aspect-ratio: 16/9;
+  width: 110px;
+  border-radius: var(--radius-sm);
+}
+
+.circle-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.banner-preview {
+  width: 110px;
+  height: 62px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.image-select-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-color);
+  background-color: rgba(255, 59, 92, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 59, 92, 0.15);
+}
+
+.image-select-label:hover {
+  background-color: var(--accent-gradient);
+  color: white;
+}

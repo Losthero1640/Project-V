@@ -1,0 +1,394 @@
+.video-detail-page {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+}
+
+.video-main-content {
+  flex: 3;
+  min-width: 0;
+}
+
+.video-player-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: black;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 16px;
+}
+
+.video-player {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.video-page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin: 12px 0;
+}
+
+.video-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.video-owner-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.channel-avatar-lg {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.channel-text-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.channel-owner-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.channel-subs {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.subscribe-button {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  margin-left: 12px;
+}
+
+.subscribe-button.subscribed {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.subscribe-button:hover {
+  opacity: 0.9;
+}
+
+.video-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.video-action-btn {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  font-weight: 500;
+  font-size: 14px;
+  gap: 8px;
+}
+
+.video-action-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.video-action-btn.active {
+  background: rgba(255, 59, 92, 0.15);
+  color: var(--accent-color);
+  border-color: rgba(255, 59, 92, 0.3);
+}
+
+.video-description-box {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.box-meta {
+  display: flex;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.description-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+/* Comments Section */
+.comments-section h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.add-comment-form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.commenter-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.comment-input-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-input-container input {
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
+  padding: 8px 0;
+}
+
+.comment-input-container input:focus {
+  border-color: var(--accent-color);
+  box-shadow: none;
+}
+
+.comment-input-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.signin-prompt {
+  font-size: 14px;
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.signin-prompt a {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.comment-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.comment-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.commenter-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.commenter-handle {
+  color: var(--text-secondary);
+}
+
+.comment-date {
+  color: var(--text-muted);
+}
+
+.comment-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.comment-item-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.comment-item:hover .comment-item-actions {
+  opacity: 1;
+}
+
+.comment-item-actions button {
+  color: var(--text-muted);
+}
+
+.comment-item-actions button:hover {
+  color: var(--text-primary);
+}
+
+.edit-comment-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.edit-comment-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Recommendations Column */
+.video-recommendations {
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.video-recommendations h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rec-card {
+  display: flex;
+  gap: 8px;
+}
+
+.rec-thumb {
+  width: 120px;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background-color: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+.rec-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rec-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rec-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.rec-owner {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.rec-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.no-rec-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Playlist modal layout */
+.playlist-modal {
+  width: 380px;
+}
+
+.playlists-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.playlist-select-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.playlist-select-item input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-color);
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .video-detail-page {
+    flex-direction: column;
+  }
+  .video-recommendations {
+    width: 100%;
+  }
+}
