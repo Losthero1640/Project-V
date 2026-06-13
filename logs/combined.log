@@ -94,3 +94,10 @@
 2026-06-13 11:42:29 [INFO]: GET /api/v1/videos?query=&limit=20 304 - - 100.955 ms
 2026-06-13 11:42:43 [INFO]: GET /api/v1/videos?query=&limit=20 304 - - 177.950 ms
 2026-06-13 11:42:43 [INFO]: GET /api/v1/videos?query=&limit=20 304 - - 186.063 ms
+2026-06-13 12:32:54 [WARN]: Redis is explicitly disabled via env.
+2026-06-13 12:32:58 [INFO]: GET /api/v1/users/current-user 401 1284 - 7.507 ms
+2026-06-13 12:32:58 [INFO]: GET /api/v1/users/current-user 401 1284 - 1.664 ms
+2026-06-13 12:32:58 [INFO]: GET /api/v1/videos?query=&limit=20 304 - - 124.096 ms
+2026-06-13 12:32:59 [INFO]: GET /api/v1/videos?query=&limit=20 304 - - 187.601 ms
+2026-06-13 12:32:59 [INFO]: POST /api/v1/users/refresh-token 401 1296 - 1.625 ms
+2026-06-13 12:32:59 [INFO]: POST /api/v1/users/refresh-token 401 1296 - 1.204 ms
