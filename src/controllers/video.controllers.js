@@ -1,11 +1,14 @@
 import mongoose from "mongoose";
 import { Video } from "../models/video.models.js";
 import { User } from "../models/user.models.js";
+import { Like } from "../models/like.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import { getCache, setCache, delCache, delCachePrefix } from "../utils/redis.js";
+
+const recentViews = new Map();
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy = "createdAt", sortType = "desc", userId } = req.query;
@@ -120,6 +123,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Failed to upload thumbnail to Cloudinary");
   }
 
+  console.log("videoFile structure:", videoFile);
+  console.log("thumbnail structure:", thumbnail);
+
   try {
     const video = await Video.create({
       videoFile: videoFile.url,
@@ -139,9 +145,14 @@ const publishAVideo = asyncHandler(async (req, res) => {
       .status(201)
       .json(new ApiResponse(201, video, "Video published successfully"));
   } catch (error) {
+    console.error("DB write error details:", error);
     // Cleanup Cloudinary resources if DB write fails
-    await deleteFromCloudinary(videoFile.public_id);
-    await deleteFromCloudinary(thumbnail.public_id);
+    if (videoFile?.public_id) {
+      await deleteFromCloudinary(videoFile.public_id);
+    }
+    if (thumbnail?.public_id) {
+      await deleteFromCloudinary(thumbnail.public_id);
+    }
     throw new ApiError(500, "Error writing video to database", error);
   }
 });
@@ -165,17 +176,50 @@ const getVideoById = asyncHandler(async (req, res) => {
     await setCache(cacheKey, video, 300);
   }
 
-  // Increment view count in DB asynchronously and ignore cache updates for views to keep it fast
-  // (or update cached version if needed)
-  video.views = (video.views || 0) + 1;
-  await Video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
-  
-  // Re-save incremented views in cache (without expiration refresh)
-  await setCache(cacheKey, video, 300);
+  // Convert to object to dynamically assign view/likes fields
+  const videoObject = typeof video.toObject === "function" ? video.toObject() : video;
+
+  // 1. IP + VideoId Throttling for views to avoid double/triple increments on concurrent requests (React StrictMode etc.)
+  const ip = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const viewKey = `${ip}-${videoId}`;
+  const now = Date.now();
+  const lastViewTime = recentViews.get(viewKey);
+
+  let shouldIncrement = true;
+  if (lastViewTime && (now - lastViewTime < 10000)) { // 10 seconds throttle window
+    shouldIncrement = false;
+  }
+
+  if (shouldIncrement) {
+    recentViews.set(viewKey, now);
+
+    // Housekeeping: clean up keys older than 1 minute to prevent memory leak
+    for (const [key, val] of recentViews.entries()) {
+      if (now - val > 60000) {
+        recentViews.delete(key);
+      }
+    }
+
+    // Increment views in MongoDB
+    await Video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
+    
+    // Update local response field
+    videoObject.views = (videoObject.views || 0) + 1;
+
+    // Refresh cache with the new view count
+    const updatedVideo = await Video.findById(videoId).populate("owner", "username fullName avatar");
+    if (updatedVideo) {
+      await setCache(cacheKey, updatedVideo, 300);
+    }
+  }
+
+  // 2. Fetch total likes count for this video
+  const likesCount = await Like.countDocuments({ video: videoId });
+  videoObject.likesCount = likesCount;
 
   return res
     .status(200)
-    .json(new ApiResponse(200, video, "Video retrieved successfully"));
+    .json(new ApiResponse(200, videoObject, "Video retrieved successfully"));
 });
 
 const updateVideo = asyncHandler(async (req, res) => {

@@ -20,6 +20,7 @@ export const VideoDetail = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscribersCount, setSubscribersCount] = useState(0);
+  const [likesCount, setLikesCount] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -39,6 +40,7 @@ export const VideoDetail = () => {
       const res = await api.get(`/videos/v/${videoId}`);
       const videoData = res.data.data;
       setVideo(videoData);
+      setLikesCount(videoData.likesCount || 0);
 
       // Check if user likes this video (Fetch user liked videos and check if present)
       if (isAuthenticated) {
@@ -107,7 +109,9 @@ export const VideoDetail = () => {
     if (!isAuthenticated) return alert("Please sign in to like videos!");
     try {
       const res = await api.post(`/likes/toggle/v/${videoId}`);
-      setIsLiked(res.data.data.isLiked);
+      const liked = res.data.data.isLiked;
+      setIsLiked(liked);
+      setLikesCount((prev) => (liked ? prev + 1 : Math.max(0, prev - 1)));
     } catch (err) {
       console.error(err);
     }
@@ -262,7 +266,7 @@ export const VideoDetail = () => {
               <svg viewBox="0 0 24 24" width="18" height="18" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
               </svg>
-              <span>Like</span>
+              <span>{likesCount} {likesCount === 1 ? "Like" : "Likes"}</span>
             </button>
 
             <button className="video-action-btn" onClick={handleOpenPlaylists}>
