@@ -16,6 +16,7 @@ export const VideoDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [activeDropdownId, setActiveDropdownId] = useState(null);
 
   const [isLiked, setIsLiked] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -103,6 +104,18 @@ export const VideoDetail = () => {
   useEffect(() => {
     fetchVideoDetails();
   }, [videoId, isAuthenticated]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".options-menu-container")) {
+        setActiveDropdownId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Handle Like Toggle
   const handleLikeToggle = async () => {
@@ -357,21 +370,46 @@ export const VideoDetail = () => {
                     </div>
 
                     {isMyComment && editingCommentId !== comment._id && (
-                      <div className="comment-item-actions">
-                        <button onClick={() => handleEditComment(comment._id, comment.content)}>
-                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
+                      <div className={`options-menu-container ${activeDropdownId === comment._id ? "active" : ""}`}>
+                        <button
+                          className="options-menu-btn"
+                          onClick={() => setActiveDropdownId(activeDropdownId === comment._id ? null : comment._id)}
+                          title="Options"
+                        >
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                           </svg>
                         </button>
-                        <button onClick={() => handleDeleteComment(comment._id)}>
-                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            <line x1="10" y1="11" x2="10" y2="17" />
-                            <line x1="14" y1="11" x2="14" y2="17" />
-                          </svg>
-                        </button>
+                        {activeDropdownId === comment._id && (
+                          <div className="options-menu-dropdown">
+                            <button
+                              className="options-menu-item"
+                              onClick={() => {
+                                handleEditComment(comment._id, comment.content);
+                                setActiveDropdownId(null);
+                              }}
+                            >
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
+                              </svg>
+                              Edit
+                            </button>
+                            <button
+                              className="options-menu-item delete"
+                              onClick={() => {
+                                setActiveDropdownId(null);
+                                handleDeleteComment(comment._id);
+                              }}
+                            >
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

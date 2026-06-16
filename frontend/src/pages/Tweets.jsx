@@ -14,6 +14,11 @@ export const Tweets = () => {
   const [newTweet, setNewTweet] = useState("");
   const [tweeting, setTweeting] = useState(false);
 
+  // Options menu & Editing states
+  const [activeDropdownId, setActiveDropdownId] = useState(null);
+  const [editingTweetId, setEditingTweetId] = useState(null);
+  const [editingContent, setEditingContent] = useState("");
+
   const fetchUserTweets = async () => {
     if (!user?._id) return;
     try {
@@ -37,6 +42,18 @@ export const Tweets = () => {
     }
   }, [user, isAuthenticated]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".options-menu-container")) {
+        setActiveDropdownId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handlePostTweet = async (e) => {
     e.preventDefault();
     if (!newTweet.trim()) return;
@@ -52,6 +69,27 @@ export const Tweets = () => {
       alert("Failed to post tweet.");
     } finally {
       setTweeting(false);
+    }
+  };
+
+  const handleEditTweet = (tweetId, content) => {
+    setEditingTweetId(tweetId);
+    setEditingContent(content);
+    setActiveDropdownId(null);
+  };
+
+  const handleUpdateTweetSubmit = async (tweetId) => {
+    if (!editingContent.trim()) return;
+    try {
+      const res = await api.patch(`/tweets/${tweetId}`, { content: editingContent });
+      setTweets((prev) =>
+        prev.map((t) => (t._id === tweetId ? res.data.data : t))
+      );
+      setEditingTweetId(null);
+      setEditingContent("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update tweet.");
     }
   };
 
@@ -115,24 +153,76 @@ export const Tweets = () => {
         </div>
       ) : (
         <div className="tweets-list">
-          {tweets.map((tweet) => (
-            <div key={tweet._id} className="tweet-card glass animate-fade-in">
-              <div className="tweet-header">
-                <img src={user.avatar} alt={user.username} className="tweet-avatar" />
-                <div className="tweet-header-info">
-                  <h4>{user.fullName}</h4>
-                  <span className="tweet-date">{formatRelativeTime(tweet.createdAt)}</span>
+          {tweets.map((tweet) => {
+            const isMyTweet = user && (tweet.owner?._id === user._id || tweet.owner === user._id);
+            return (
+              <div key={tweet._id} className="tweet-card glass animate-fade-in">
+                <div className="tweet-header">
+                  <img src={user.avatar} alt={user.username} className="tweet-avatar" />
+                  <div className="tweet-header-info">
+                    <h4>{user.fullName}</h4>
+                    <span className="tweet-date">{formatRelativeTime(tweet.createdAt)}</span>
+                  </div>
+                  {isMyTweet && (
+                    <div className="options-menu-container">
+                      <button
+                        className="options-menu-btn"
+                        onClick={() => setActiveDropdownId(activeDropdownId === tweet._id ? null : tweet._id)}
+                        title="Options"
+                      >
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                      </button>
+                      {activeDropdownId === tweet._id && (
+                        <div className="options-menu-dropdown">
+                          <button
+                            className="options-menu-item"
+                            onClick={() => handleEditTweet(tweet._id, tweet.content)}
+                          >
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z" />
+                            </svg>
+                            Edit
+                          </button>
+                          <button
+                            className="options-menu-item delete"
+                            onClick={() => {
+                              setActiveDropdownId(null);
+                              handleDeleteTweet(tweet._id);
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <button className="delete-tweet-btn" onClick={() => handleDeleteTweet(tweet._id)}>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                </button>
+                {editingTweetId === tweet._id ? (
+                  <div className="edit-tweet-container">
+                    <textarea
+                      value={editingContent}
+                      onChange={(e) => setEditingContent(e.target.value)}
+                      maxLength={280}
+                      required
+                    />
+                    <div className="edit-tweet-actions">
+                      <button className="btn-secondary" onClick={() => setEditingTweetId(null)}>Cancel</button>
+                      <button className="btn-primary" onClick={() => handleUpdateTweetSubmit(tweet._id)}>Update</button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="tweet-text">{tweet.content}</p>
+                )}
               </div>
-              <p className="tweet-text">{tweet.content}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
