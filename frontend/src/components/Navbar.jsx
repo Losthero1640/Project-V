@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 
-export const Navbar = ({ onOpenUpload }) => {
+export const Navbar = ({ onOpenUpload, onToggleSidebar }) => {
   const { user, logout, isAuthenticated } = useAuth();
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -48,6 +48,13 @@ export const Navbar = ({ onOpenUpload }) => {
   return (
     <nav className="navbar glass">
       <div className="nav-left">
+        <button className="hamburger-btn" onClick={onToggleSidebar} title="Menu">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
         <Link to="/" className="logo-container">
           <svg className="logo-icon" viewBox="0 0 24 24" width="32" height="32">
             <path fill="url(#logo-grad)" d="M23,12A11,11 0 0,0 12,1A11,11 0 0,0 1,12A11,11 0 0,0 12,23A11,11 0 0,0 23,12M8,17V7L16,12L8,17Z" />

@@ -20,6 +20,7 @@ import { Auth } from "./pages/Auth";
 
 function AppContent() {
   const [showUpload, setShowUpload] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleUploadSuccess = () => {
     alert("Video published successfully! Refreshing feed...");
@@ -28,9 +29,15 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      <Navbar onOpenUpload={() => setShowUpload(true)} />
+      <Navbar
+        onOpenUpload={() => setShowUpload(true)}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      />
       <div className="main-layout">
-        <Sidebar />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        {sidebarOpen && (
+          <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)}></div>
+        )}
         <main className="content-area">
           <Routes>
             <Route path="/" element={<Home />} />

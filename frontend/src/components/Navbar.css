@@ -147,9 +147,34 @@
   color: #ef4444;
 }
 
+.hamburger-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  margin-right: 8px;
+}
+
+.hamburger-btn:hover {
+  background-color: var(--bg-hover);
+}
+
+.signin-link {
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
+  .hamburger-btn {
+    display: inline-flex;
+  }
   .search-form {
-    width: 200px;
+    width: 150px;
   }
   .upload-btn span {
     display: none;
@@ -157,5 +182,17 @@
   .upload-btn {
     padding: 8px;
     border-radius: 50%;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    display: none;
+  }
+  .navbar {
+    padding: 0 12px;
+  }
+  .search-form {
+    width: 100px;
   }
 }
