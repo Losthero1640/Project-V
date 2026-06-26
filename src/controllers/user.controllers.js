@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
@@ -7,6 +8,8 @@ import {
 } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendEmail } from "../utils/mail.js";
 
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -30,9 +33,6 @@ const generateAccessAndRefereshTokens = async (userId) => {
 const registerUser = asyncHandler(async (req, res, next) => {
   const { fullName, email, username, password } = req.body;
 
-  // if(fullName?.trim() === ""){
-  //     throw new ApiError(400, "Full Name is required");
-  // }
   if (
     [fullName, username, email, password].some((field) => field?.trim() === "")
   ) {
@@ -45,10 +45,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
   if (existedUser) {
     throw new ApiError(409, "User with email or username already exists");
   }
-  //console.log(req.files);
-
   const avatarLocalPath = req.files?.avatar[0]?.path; //localpath from multer
-  //const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
   let coverImageLocalPath;
   if (
@@ -466,6 +463,92 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     );
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(404, "User with this email does not exist");
+  }
+
+  // Generate random token
+  const resetToken = crypto.randomBytes(20).toString("hex");
+
+  // Hash and save token to DB with 15 minutes expiry
+  const hashToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  user.forgotPasswordToken = hashToken;
+  user.forgotPasswordExpiry = Date.now() + 15 * 60 * 1000; // 15 mins
+  await user.save({ validateBeforeSave: false });
+
+  // Send email
+  const resetUrl = `${req.header("Origin") || "http://localhost:5173"}/reset-password/${resetToken}`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+      <h2 style="color: #ff3b5c; text-align: center;">Reset Your Password</h2>
+      <p>Hello ${user.fullName},</p>
+      <p>We received a request to reset the password for your VidTube account. Click the button below to choose a new password. This link will expire in 15 minutes.</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="background: linear-gradient(135deg, #ff3b5c, #ff6c3b); color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
+      </div>
+      <p>If you didn't request a password reset, you can safely ignore this email.</p>
+      <hr style="border: 0; border-top: 1px solid #e0e0e0; margin-top: 30px;">
+      <p style="font-size: 12px; color: #777; text-align: center;">VidTube Team &copy; 2026</p>
+    </div>
+  `;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "VidTube Password Reset Request",
+      html,
+    });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Password reset link sent to your registered email"));
+  } catch (error) {
+    user.forgotPasswordToken = undefined;
+    user.forgotPasswordExpiry = undefined;
+    await user.save({ validateBeforeSave: false });
+    throw new ApiError(500, "Error sending email. Please try again later.");
+  }
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  if (!password) {
+    throw new ApiError(400, "New password is required");
+  }
+
+  const hashToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    forgotPasswordToken: hashToken,
+    forgotPasswordExpiry: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new ApiError(400, "Invalid or expired password reset token");
+  }
+
+  user.password = password;
+  user.forgotPasswordToken = undefined;
+  user.forgotPasswordExpiry = undefined;
+  await user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password has been reset successfully"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -478,4 +561,6 @@ export {
   updateUserCoverImage,
   getUserChannelProfile,
   getWatchHistory,
+  forgotPassword,
+  resetPassword,
 };

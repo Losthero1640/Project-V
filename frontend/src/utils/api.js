@@ -7,6 +7,21 @@ export const api = axios.create({
   withCredentials: true, // Send cookies along with requests
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
 // Response interceptor to handle token expiry (401 errors)
 api.interceptors.response.use(
   (response) => response,
@@ -22,7 +37,20 @@ api.interceptors.response.use(
       originalRequest.url !== "/users/register" &&
       originalRequest.url !== "/users/refresh-token"
     ) {
+      if (isRefreshing) {
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         // Call the refresh-token endpoint (cookies are sent automatically)
@@ -32,9 +60,15 @@ api.interceptors.response.use(
           { withCredentials: true }
         );
 
+        isRefreshing = false;
+        processQueue(null);
+
         // Retry the original request
         return api(originalRequest);
       } catch (refreshError) {
+        isRefreshing = false;
+        processQueue(refreshError);
+
         // If refresh fails, token is completely invalid/expired, redirect to login or clear auth state
         console.error("Refresh token expired or invalid", refreshError);
         
@@ -48,3 +82,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+

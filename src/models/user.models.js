@@ -45,12 +45,17 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
+    forgotPasswordToken: {
+      type: String,
+    },
+    forgotPasswordExpiry: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
   }
 );
-//never use arrow functions in mongoose methods
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     const salt = await bcrypt.genSalt(10);

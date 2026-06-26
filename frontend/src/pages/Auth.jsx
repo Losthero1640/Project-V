@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../utils/api";
 import "./Auth.css";
 
 export const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   
   // Login State
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  // Forgot Password State
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Register State
   const [fullName, setFullName] = useState("");
@@ -45,10 +51,18 @@ export const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (isForgotPassword) {
+        if (!forgotEmail) {
+          throw new Error("Email is required.");
+        }
+        await api.post("/users/forgot-password", { email: forgotEmail });
+        setSuccessMessage("Password reset link sent to your registered email. Check your inbox!");
+        setForgotEmail("");
+      } else if (isLogin) {
         if (!emailOrUsername || !password) {
           throw new Error("Please fill in all fields.");
         }
@@ -76,7 +90,7 @@ export const Auth = () => {
         alert("Registration successful! Please sign in.");
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
@@ -86,14 +100,57 @@ export const Auth = () => {
     <div className="auth-page animate-fade-in">
       <div className="auth-card glass animate-slide-up">
         <div className="auth-header">
-          <h2>{isLogin ? "Sign In to VidTube" : "Create your Account"}</h2>
-          <p>{isLogin ? "Welcome back! Good to see you." : "Start sharing videos with the world."}</p>
+          <h2>
+            {isForgotPassword 
+              ? "Reset Password" 
+              : isLogin 
+                ? "Sign In to VidTube" 
+                : "Create your Account"}
+          </h2>
+          <p>
+            {isForgotPassword 
+              ? "Enter your email to receive a password reset link." 
+              : isLogin 
+                ? "Welcome back! Good to see you." 
+                : "Start sharing videos with the world."}
+          </p>
         </div>
 
         {error && <div className="auth-error">{error}</div>}
+        {successMessage && (
+          <div 
+            className="auth-success" 
+            style={{ 
+              color: "#4caf50", 
+              background: "rgba(76, 175, 80, 0.1)", 
+              padding: "12px", 
+              borderRadius: "6px", 
+              margin: "15px 0", 
+              textAlign: "center",
+              fontSize: "14px",
+              border: "1px solid rgba(76, 175, 80, 0.2)"
+            }}
+          >
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {!isLogin && (
+          {isForgotPassword && (
+            <div className="form-group">
+              <label>Registered Email Address</label>
+              <input
+                type="email"
+                placeholder="john@example.com"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+          )}
+
+          {!isForgotPassword && !isLogin && (
             <>
               {/* Image Previews Row */}
               <div className="previews-row">
@@ -168,7 +225,7 @@ export const Auth = () => {
             </>
           )}
 
-          {isLogin && (
+          {!isForgotPassword && isLogin && (
             <>
               <div className="form-group">
                 <label>Username or Email</label>
@@ -183,7 +240,30 @@ export const Auth = () => {
               </div>
 
               <div className="form-group">
-                <label>Password</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <label style={{ marginBottom: 0 }}>Password</label>
+                  <button
+                    type="button"
+                    className="forgot-password-link-btn"
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      setIsLogin(false);
+                      setError("");
+                      setSuccessMessage("");
+                    }}
+                    style={{ 
+                      background: "none", 
+                      border: "none", 
+                      color: "#ff3b5c", 
+                      cursor: "pointer", 
+                      fontSize: "12px", 
+                      padding: 0,
+                      fontWeight: 500
+                    }}
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <input
                   type="password"
                   placeholder="••••••••"
@@ -199,6 +279,8 @@ export const Auth = () => {
           <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>
             {loading ? (
               <div className="spinner"></div>
+            ) : isForgotPassword ? (
+              "Send Reset Link"
             ) : isLogin ? (
               "Sign In"
             ) : (
@@ -208,21 +290,39 @@ export const Auth = () => {
         </form>
 
         <div className="auth-footer">
-          <p>
-            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          {isForgotPassword ? (
             <button
               onClick={() => {
-                setIsLogin(!isLogin);
+                setIsForgotPassword(false);
+                setIsLogin(true);
                 setError("");
+                setSuccessMessage("");
               }}
               disabled={loading}
               className="toggle-auth-mode-btn"
             >
-              {isLogin ? "Create account" : "Sign in instead"}
+              Back to Sign In
             </button>
-          </p>
+          ) : (
+            <p>
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+              <button
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setIsForgotPassword(false);
+                  setError("");
+                  setSuccessMessage("");
+                }}
+                disabled={loading}
+                className="toggle-auth-mode-btn"
+              >
+                {isLogin ? "Create account" : "Sign in instead"}
+              </button>
+            </p>
+          )}
         </div>
       </div>
     </div>
   );
 };
+

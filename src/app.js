@@ -6,9 +6,22 @@ import { logger } from './utils/logger.js';
 
 const app = express();
 
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : ["http://localhost:5173"];
+
 app.use(
     cors({
-        origin: process.env.CORS_ORIGIN,
+        origin: function (origin, callback) {
+            // Allow requests with no origin (like curl, mobile apps, etc.)
+            if (!origin) return callback(null, true);
+            if (
+                allowedOrigins.includes(origin) || 
+                origin.startsWith("http://localhost:") || 
+                origin.startsWith("http://127.0.0.1:")
+            ) {
+                return callback(null, true);
+            }
+            return callback(new Error("Not allowed by CORS"), false);
+        },
         credentials: true
     })
 );

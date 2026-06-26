@@ -34,6 +34,7 @@
     "mongoose-aggregate-paginate-v2": "^1.1.4",
     "morgan": "^1.11.0",
     "multer": "^2.0.2",
+    "nodemailer": "^9.0.1",
     "redis": "^6.0.0",
     "winston": "^3.19.0"
   }

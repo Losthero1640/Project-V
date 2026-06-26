@@ -11,9 +11,11 @@ import {
   getUserChannelProfile,
   getWatchHistory,
   updateAccountDetails,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/user.controllers.js";
 import {upload} from "../middlewares/multer.middleware.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWT, verifyJWTOptional } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -31,7 +33,9 @@ router.route("/register").post(
   registerUser
 );
 router.route("/login").post(loginUser);
-//secured outes
+router.route("/forgot-password").post(forgotPassword);
+router.route("/reset-password/:token").post(resetPassword);
+// Secured routes
 
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refresh-token").post(refreshAccessToken);
@@ -46,7 +50,7 @@ router
   .route("/cover-image")
   .patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
 
-router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
+router.route("/c/:username").get(verifyJWTOptional, getUserChannelProfile);
 router.route("/history").get(verifyJWT, getWatchHistory);
 
 export { router };

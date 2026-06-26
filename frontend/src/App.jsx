@@ -17,6 +17,7 @@ import { WatchHistory } from "./pages/WatchHistory";
 import { LikedVideos } from "./pages/LikedVideos";
 import { Subscriptions } from "./pages/Subscriptions";
 import { Auth } from "./pages/Auth";
+import { ResetPassword } from "./pages/ResetPassword";
 
 function AppContent() {
   const [showUpload, setShowUpload] = useState(false);
@@ -51,6 +52,7 @@ function AppContent() {
             <Route path="/liked-videos" element={<LikedVideos />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
           </Routes>
         </main>
       </div>

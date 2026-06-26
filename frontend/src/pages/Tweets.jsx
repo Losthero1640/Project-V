@@ -19,12 +19,11 @@ export const Tweets = () => {
   const [editingTweetId, setEditingTweetId] = useState(null);
   const [editingContent, setEditingContent] = useState("");
 
-  const fetchUserTweets = async () => {
-    if (!user?._id) return;
+  const fetchAllTweets = async () => {
     try {
       setLoading(true);
       setError("");
-      const res = await api.get(`/tweets/user/${user._id}`);
+      const res = await api.get("/tweets");
       setTweets(res.data.data || []);
     } catch (err) {
       console.error(err);
@@ -35,12 +34,8 @@ export const Tweets = () => {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchUserTweets();
-    } else {
-      setLoading(false);
-    }
-  }, [user, isAuthenticated]);
+    fetchAllTweets();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -104,38 +99,49 @@ export const Tweets = () => {
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="empty-container">
-        <h3>Sign In Required</h3>
-        <p>Please sign in to read and post community tweets.</p>
-        <Link to="/auth" className="btn-primary">Sign In</Link>
-      </div>
-    );
-  }
-
   return (
     <div className="tweets-page-container animate-fade-in">
       <div className="tweets-page-header">
         <h1>Community Tweets</h1>
-        <p>Broadcast updates and notes directly to your subscribers.</p>
+        <p>Broadcast updates, recommendations, and notes directly to the community.</p>
       </div>
 
-      <form onSubmit={handlePostTweet} className="create-tweet-form glass animate-slide-up">
-        <textarea
-          placeholder="What's on your mind? Post a channel update..."
-          value={newTweet}
-          onChange={(e) => setNewTweet(e.target.value)}
-          maxLength={280}
-          required
-        />
-        <div className="tweet-form-footer">
-          <span className="char-count">{280 - newTweet.length} characters remaining</span>
-          <button type="submit" className="btn-primary" disabled={tweeting || !newTweet.trim()}>
-            {tweeting ? "Posting..." : "Post Update"}
-          </button>
+      {isAuthenticated ? (
+        <form onSubmit={handlePostTweet} className="create-tweet-form glass animate-slide-up">
+          <textarea
+            placeholder="What's on your mind? Post a channel update..."
+            value={newTweet}
+            onChange={(e) => setNewTweet(e.target.value)}
+            maxLength={280}
+            required
+          />
+          <div className="tweet-form-footer">
+            <span className="char-count">{280 - newTweet.length} characters remaining</span>
+            <button type="submit" className="btn-primary" disabled={tweeting || !newTweet.trim()}>
+              {tweeting ? "Posting..." : "Post Update"}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div 
+          className="signin-prompt-container glass animate-slide-up" 
+          style={{ 
+            padding: "24px", 
+            textAlign: "center", 
+            borderRadius: "var(--radius-lg)", 
+            marginBottom: "24px", 
+            border: "1px solid var(--border-color)", 
+            background: "var(--bg-secondary)" 
+          }}
+        >
+          <p style={{ marginBottom: "16px", color: "var(--text-secondary)", fontSize: "14px" }}>
+            Sign in to share your updates and post tweets with the community.
+          </p>
+          <Link to="/auth" className="btn-primary" style={{ padding: "8px 24px", borderRadius: "5px", textDecoration: "none", fontSize: "14px", fontWeight: 600 }}>
+            Sign In
+          </Link>
         </div>
-      </form>
+      )}
 
       {loading ? (
         <div className="loading-container">
@@ -149,18 +155,32 @@ export const Tweets = () => {
       ) : tweets.length === 0 ? (
         <div className="empty-container">
           <h3>No tweets yet</h3>
-          <p>Write your first tweet above to update your audience!</p>
+          <p>Be the first to write a tweet and start the conversation!</p>
         </div>
       ) : (
         <div className="tweets-list">
           {tweets.map((tweet) => {
-            const isMyTweet = user && (tweet.owner?._id === user._id || tweet.owner === user._id);
+            const tweetOwner = tweet.owner || {};
+            const isMyTweet = user && (tweetOwner._id === user._id || tweetOwner === user._id);
             return (
               <div key={tweet._id} className="tweet-card glass animate-fade-in">
                 <div className="tweet-header">
-                  <img src={user.avatar} alt={user.username} className="tweet-avatar" />
+                  <Link to={`/channel/${tweetOwner.username}`}>
+                    <img 
+                      src={tweetOwner.avatar || "https://res.cloudinary.com/losthero/image/upload/v1700000000/default-avatar.png"} 
+                      alt={tweetOwner.username} 
+                      className="tweet-avatar" 
+                    />
+                  </Link>
                   <div className="tweet-header-info">
-                    <h4>{user.fullName}</h4>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Link to={`/channel/${tweetOwner.username}`} className="tweet-owner-name" style={{ fontWeight: 600, color: "var(--text-primary)", textDecoration: "none" }}>
+                        {tweetOwner.fullName || "User"}
+                      </Link>
+                      <span className="tweet-owner-handle" style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                        @{tweetOwner.username || "username"}
+                      </span>
+                    </div>
                     <span className="tweet-date">{formatRelativeTime(tweet.createdAt)}</span>
                   </div>
                   {isMyTweet && (
@@ -228,3 +248,4 @@ export const Tweets = () => {
     </div>
   );
 };
+
