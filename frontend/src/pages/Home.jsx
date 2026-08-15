@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { api } from "../utils/api";
 import { VideoCard } from "../components/VideoCard";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import { EmptyState } from "../components/EmptyState";
 import "./Home.css";
 
 export const Home = () => {
@@ -46,10 +48,7 @@ export const Home = () => {
   return (
     <div className="home-page animate-fade-in">
       {loading ? (
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading videos...</p>
-        </div>
+        <LoadingSpinner message="Loading videos..." />
       ) : error ? (
         <div className="error-container">
           <p>{error}</p>
@@ -58,20 +57,10 @@ export const Home = () => {
           </button>
         </div>
       ) : videos.length === 0 ? (
-        <div className="empty-container">
-          <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" strokeWidth="1">
-            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
-            <line x1="7" y1="2" x2="7" y2="22" />
-            <line x1="17" y1="2" x2="17" y2="22" />
-            <line x1="2" y1="12" x2="22" y2="12" />
-            <line x1="2" y1="7" x2="7" y2="7" />
-            <line x1="2" y1="17" x2="7" y2="17" />
-            <line x1="17" y1="17" x2="22" y2="17" />
-            <line x1="17" y1="7" x2="22" y2="7" />
-          </svg>
-          <h3>No videos found</h3>
-          <p>Try searching for something else or upload a new video!</p>
-        </div>
+        <EmptyState
+          title="No videos found"
+          description="Try searching for something else or upload a new video!"
+        />
       ) : (
         <div className="video-grid">
           {videos.map((video) => (

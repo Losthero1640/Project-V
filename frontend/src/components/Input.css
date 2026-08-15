@@ -1,0 +1,35 @@
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #aaa);
+}
+
+.input-field {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: var(--accent, #ae7aff);
+}
+
+.input-field.error {
+  border-color: #ff4d4f;
+}
+
+.input-error {
+  font-size: 0.8rem;
+  color: #ff4d4f;
+}

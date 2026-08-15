@@ -51,6 +51,7 @@ import { router as playlistRouter } from "./routes/playlist.routes.js";
 import { router as subscriptionRouter } from "./routes/subscription.routes.js";
 import { router as tweetRouter } from "./routes/tweet.routes.js";
 import { router as dashboardRouter } from "./routes/dashboard.routes.js";
+import { router as paymentRouter } from "./routes/payment.routes.js";
 import { errorHandler } from './middlewares/error.middlewares.js';
 
 // Mount routes
@@ -63,6 +64,7 @@ app.use("/api/v1/playlists", playlistRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/tweets", tweetRouter);
 app.use("/api/v1/dashboard", dashboardRouter);
+app.use("/api/v1/payments", paymentRouter);
 
 app.use(errorHandler);
 

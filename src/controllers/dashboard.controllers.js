@@ -16,7 +16,6 @@ const getChannelStats = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, cachedStats, "Channel stats fetched from cache"));
   }
 
-  // 1. Get total video views & count of videos
   const videoStats = await Video.aggregate([
     {
       $match: {
@@ -35,12 +34,10 @@ const getChannelStats = asyncHandler(async (req, res) => {
   const totalViews = videoStats[0]?.totalViews || 0;
   const totalVideos = videoStats[0]?.totalVideos || 0;
 
-  // 2. Get total subscribers count
   const subscribersCount = await Subscription.countDocuments({
     channel: userId,
   });
 
-  // 3. Get total likes count across all user's videos
   const likesStats = await Video.aggregate([
     {
       $match: {
@@ -77,7 +74,6 @@ const getChannelStats = asyncHandler(async (req, res) => {
     totalLikes,
   };
 
-  // Cache dashboard stats for 5 minutes
   await setCache(cacheKey, stats, 300);
 
   return res

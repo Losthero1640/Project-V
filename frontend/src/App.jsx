@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { Navbar } from "./components/Navbar";
 import { Sidebar } from "./components/Sidebar";
 import { UploadModal } from "./components/UploadModal";
+import { PremiumModal } from "./components/PremiumModal";
 
 // Pages
 import { Home } from "./pages/Home";
@@ -21,6 +22,7 @@ import { ResetPassword } from "./pages/ResetPassword";
 
 function AppContent() {
   const [showUpload, setShowUpload] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleUploadSuccess = () => {
@@ -32,6 +34,7 @@ function AppContent() {
     <div className="app-container">
       <Navbar
         onOpenUpload={() => setShowUpload(true)}
+        onOpenPremium={() => setShowPremium(true)}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
       <div className="main-layout">
@@ -62,6 +65,10 @@ function AppContent() {
           onClose={() => setShowUpload(false)}
           onSuccess={handleUploadSuccess}
         />
+      )}
+
+      {showPremium && (
+        <PremiumModal onClose={() => setShowPremium(false)} />
       )}
     </div>
   );

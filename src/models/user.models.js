@@ -16,7 +16,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      lowecase: true,
+      lowercase: true,
       trim: true,
     },
     fullName: {
@@ -51,6 +51,14 @@ const userSchema = new Schema(
     forgotPasswordExpiry: {
       type: Date,
     },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
+    premiumExpiry: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -74,6 +82,7 @@ userSchema.methods.generateAccessToken = function () {
     username: this.username,
     fullName: this.fullName,
     email: this.email,
+    isPremium: this.isPremium,
   },process.env.ACCESS_TOKEN_SECRET,{
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   },

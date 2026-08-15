@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import { VideoCard, formatViews, formatRelativeTime } from "../components/VideoCard";
+import { SuperThanksModal } from "../components/SuperThanksModal";
 import "./VideoDetail.css";
 
 export const VideoDetail = () => {
@@ -11,6 +12,7 @@ export const VideoDetail = () => {
   
   const [video, setVideo] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
+  const [showSuperThanks, setShowSuperThanks] = useState(false);
   
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -290,6 +292,22 @@ export const VideoDetail = () => {
               </svg>
               <span>Save</span>
             </button>
+
+            <button
+              className="video-action-btn super-thanks-btn"
+              onClick={() => {
+                if (!isAuthenticated) return alert("Please sign in to send Super Thanks!");
+                setShowSuperThanks(true);
+              }}
+              style={{
+                background: "linear-gradient(135deg, rgba(255, 126, 95, 0.15), rgba(254, 180, 123, 0.15))",
+                borderColor: "#ff7e5f",
+                color: "#ff7e5f",
+                fontWeight: "600",
+              }}
+            >
+              <span>💖 Thanks</span>
+            </button>
           </div>
         </div>
 
@@ -478,6 +496,15 @@ export const VideoDetail = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Super Thanks Payment Modal */}
+      {showSuperThanks && (
+        <SuperThanksModal
+          video={video}
+          onClose={() => setShowSuperThanks(false)}
+          onSuccess={(amt) => console.log(`Super Thanks sent: ₹${amt}`)}
+        />
       )}
     </div>
   );

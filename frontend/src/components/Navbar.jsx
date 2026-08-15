@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 
-export const Navbar = ({ onOpenUpload, onToggleSidebar }) => {
+export const Navbar = ({ onOpenUpload, onToggleSidebar, onOpenPremium }) => {
   const { user, logout, isAuthenticated } = useAuth();
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -90,6 +90,26 @@ export const Navbar = ({ onOpenUpload, onToggleSidebar }) => {
       <div className="nav-right">
         {isAuthenticated ? (
           <div className="user-controls">
+            <button
+              className="premium-nav-btn"
+              onClick={onOpenPremium}
+              style={{
+                background: "linear-gradient(135deg, #ffd700, #ff8c00)",
+                color: "#111",
+                border: "none",
+                borderRadius: "20px",
+                padding: "6px 14px",
+                fontWeight: "700",
+                fontSize: "0.85rem",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              👑 {user?.isPremium ? "Premium" : "Get Premium"}
+            </button>
+
             <button className="upload-btn" onClick={onOpenUpload} title="Upload Video">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -109,10 +129,22 @@ export const Navbar = ({ onOpenUpload, onToggleSidebar }) => {
               {dropdownOpen && (
                 <div className="profile-dropdown glass animate-fade-in">
                   <div className="dropdown-user-info">
-                    <p className="user-name">{user?.fullName}</p>
+                    <p className="user-name" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      {user?.fullName} {user?.isPremium && <span>👑</span>}
+                    </p>
                     <p className="user-handle">@{user?.username}</p>
                   </div>
                   <hr className="dropdown-divider" />
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      onOpenPremium();
+                    }}
+                    style={{ color: "#ffd700", fontWeight: "bold" }}
+                  >
+                    👑 VidTube Premium
+                  </button>
                   <Link to={`/channel/${user?.username}`} className="dropdown-item" onClick={() => setDropdownOpen(false)}>
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />

@@ -13,7 +13,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid Video ID");
   }
 
-  // Check if video exists
   const videoExists = await Video.findById(videoId);
   if (!videoExists) {
     throw new ApiError(404, "Video not found");
