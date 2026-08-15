@@ -26,9 +26,13 @@ export const LiveStream = () => {
   const [superChatAmount, setSuperChatAmount] = useState(100);
   const [superChatMessage, setSuperChatMessage] = useState("");
   const [donationLoading, setDonationLoading] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isCameraOn, setIsCameraOn] = useState(false);
 
   const socketRef = useRef(null);
   const chatBottomRef = useRef(null);
+  const videoRef = useRef(null);
+  const mediaStreamRef = useRef(null);
 
   // Fetch initial stream details and chat history
   useEffect(() => {
@@ -76,6 +80,9 @@ export const LiveStream = () => {
     });
 
     return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
       if (socketRef.current) {
         socketRef.current.emit("leave:stream");
         socketRef.current.disconnect();
@@ -87,6 +94,80 @@ export const LiveStream = () => {
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Start Screen Sharing
+  const handleStartScreenShare = async () => {
+    try {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
+
+      mediaStreamRef.current = screenStream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = screenStream;
+        videoRef.current.play();
+      }
+
+      setIsScreenSharing(true);
+      setIsCameraOn(false);
+
+      screenStream.getVideoTracks()[0].onended = () => {
+        setIsScreenSharing(false);
+        if (videoRef.current) videoRef.current.srcObject = null;
+      };
+    } catch (err) {
+      console.warn("Screen share cancelled or failed:", err);
+    }
+  };
+
+  // Start Webcam Video
+  const handleStartCamera = async () => {
+    try {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+
+      const cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+
+      mediaStreamRef.current = cameraStream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = cameraStream;
+        videoRef.current.play();
+      }
+
+      setIsCameraOn(true);
+      setIsScreenSharing(false);
+
+      cameraStream.getVideoTracks()[0].onended = () => {
+        setIsCameraOn(false);
+        if (videoRef.current) videoRef.current.srcObject = null;
+      };
+    } catch (err) {
+      console.warn("Camera access denied or failed:", err);
+      alert("Please allow camera permissions in your browser.");
+    }
+  };
+
+  // Stop Media Broadcast
+  const handleStopBroadcast = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsScreenSharing(false);
+    setIsCameraOn(false);
+  };
 
   // Send standard chat message
   const handleSendMessage = (e) => {
@@ -178,6 +259,7 @@ export const LiveStream = () => {
   const handleEndStream = async () => {
     if (!window.confirm("Are you sure you want to end this live stream?")) return;
     try {
+      handleStopBroadcast();
       await api.post(`/livestreams/${streamId}/end`);
       alert("Live stream ended.");
       navigate("/live");
@@ -213,12 +295,69 @@ export const LiveStream = () => {
           <span className="livestream-viewer-badge">👁️ {viewerCount} watching</span>
 
           <video
+            ref={videoRef}
             className="livestream-video"
-            src={stream.streamUrl}
+            src={!isScreenSharing && !isCameraOn ? stream.streamUrl : undefined}
             autoPlay
             controls
             playsInline
+            muted={isStreamer}
           />
+
+          {/* Streamer Screen/Cam controls prompt */}
+          {isStreamer && !isScreenSharing && !isCameraOn && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0, 0, 0, 0.7)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 16,
+                zIndex: 5,
+              }}
+            >
+              <h3 style={{ color: "#fff", margin: 0 }}>🎥 Start Broadcasting Your Feed</h3>
+              <p style={{ color: "#a1a1aa", margin: 0, fontSize: "0.9rem" }}>
+                Share your screen, game, or webcam with your viewers
+              </p>
+              <div style={{ display: "flex", gap: 12 }}>
+                <button
+                  onClick={handleStartScreenShare}
+                  style={{
+                    background: "linear-gradient(135deg, #ff3b5c, #ff6c3b)",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "10px 18px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  🖥️ Share Screen / Window
+                </button>
+                <button
+                  onClick={handleStartCamera}
+                  style={{
+                    background: "#27272a",
+                    color: "#fff",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: 8,
+                    padding: "10px 18px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  📷 Turn On Camera
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Floating reaction particle overlay */}
           <div className="reactions-overlay">
@@ -233,11 +372,29 @@ export const LiveStream = () => {
         <div className="livestream-info-card">
           <div className="livestream-title-row">
             <h1 className="livestream-title">{stream.title}</h1>
-            {isStreamer && (
-              <button className="end-stream-btn" onClick={handleEndStream}>
-                End Stream
-              </button>
-            )}
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {isStreamer && (isScreenSharing || isCameraOn) && (
+                <button
+                  onClick={handleStopBroadcast}
+                  style={{
+                    background: "#3f3f46",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "8px 14px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  ⏸️ Switch Feed
+                </button>
+              )}
+              {isStreamer && (
+                <button className="end-stream-btn" onClick={handleEndStream}>
+                  End Stream
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="livestream-meta-row">
