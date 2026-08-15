@@ -1,9 +1,4 @@
 .env
 node_modules
-docker_plan.md
 logs/
-implementation_plan_for_tweet_change.md
-git_github_beginner_guide.md
-frontend_concepts_guide.md
-backend_concepts_guide.md
-project_discussion_guide.md
+document/
