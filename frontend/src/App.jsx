@@ -19,6 +19,8 @@ import { LikedVideos } from "./pages/LikedVideos";
 import { Subscriptions } from "./pages/Subscriptions";
 import { Auth } from "./pages/Auth";
 import { ResetPassword } from "./pages/ResetPassword";
+import { LiveStreams } from "./pages/LiveStreams";
+import { LiveStream } from "./pages/LiveStream";
 
 function AppContent() {
   const [showUpload, setShowUpload] = useState(false);
@@ -46,6 +48,8 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/video/:videoId" element={<VideoDetail />} />
+            <Route path="/live" element={<LiveStreams />} />
+            <Route path="/live/:streamId" element={<LiveStream />} />
             <Route path="/channel/:username" element={<Channel />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/playlists" element={<Playlists />} />

@@ -29,6 +29,11 @@ export const Sidebar = ({ isOpen, onClose }) => {
           </svg>
           <span>Subscriptions</span>
         </NavLink>
+
+        <NavLink to="/live" onClick={handleLinkClick} className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
+          <span style={{ fontSize: "1.1rem" }}>🔴</span>
+          <span>Live Streams</span>
+        </NavLink>
       </div>
 
       <hr className="sidebar-divider" />

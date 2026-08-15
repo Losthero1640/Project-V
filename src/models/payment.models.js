@@ -18,7 +18,7 @@ const paymentSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ["SUPER_THANKS", "PREMIUM_SUBSCRIPTION", "CUSTOM_PAYMENT", "ORDER"],
+      enum: ["SUPER_THANKS", "SUPER_CHAT", "PREMIUM_SUBSCRIPTION", "CUSTOM_PAYMENT", "ORDER"],
       default: "ORDER",
     },
     amount: {

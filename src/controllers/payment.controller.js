@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Payment } from "../models/payment.models.js";
 import { User } from "../models/user.models.js";
+import { broadcastSuperChat } from "../socket.js";
 
 const getRazorpayInstance = () => {
   const key_id = process.env.RAZORPAY_KEY_ID;
@@ -18,16 +19,16 @@ const getRazorpayInstance = () => {
 };
 
 export const createPaymentOrder = asyncHandler(async (req, res) => {
-  const { type = "ORDER", amount, currency = "INR", receipt, recipientId, videoId, notes = {} } = req.body;
+  const { type = "ORDER", amount, currency = "INR", receipt, recipientId, videoId, streamId, notes = {} } = req.body;
 
   let amountInPaise = 0;
 
   if (type === "PREMIUM_SUBSCRIPTION") {
     amountInPaise = 199 * 100;
-  } else if (type === "SUPER_THANKS") {
+  } else if (type === "SUPER_THANKS" || type === "SUPER_CHAT") {
     const parsedAmount = Number(amount);
     if (!parsedAmount || parsedAmount < 1) {
-      throw new ApiError(400, "Super Thanks amount must be at least ₹1");
+      throw new ApiError(400, "Donation amount must be at least ₹1");
     }
     amountInPaise = Math.round(parsedAmount * 100);
   } else {
@@ -55,6 +56,7 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
         userId: req.user?._id ? req.user._id.toString() : "",
         type,
         videoId: videoId || "",
+        streamId: streamId || "",
         recipientId: recipientId || "",
         ...notes,
       },
@@ -75,7 +77,9 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
     notes: {
       type,
       videoId: videoId || "",
+      streamId: streamId || "",
       receipt: order.receipt || orderReceipt,
+      message: notes.message || "",
     },
   });
 
@@ -140,6 +144,19 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   payment.paymentId = razorpay_payment_id;
   payment.signature = razorpay_signature;
   await payment.save();
+
+  // If payment is Super Chat on a live stream, broadcast in real-time
+  const streamId = payment.notes?.get("streamId");
+  const donationMessage = payment.notes?.get("message");
+  if (payment.type === "SUPER_CHAT" || streamId) {
+    const donorUser = await User.findById(payment.user).select("username fullName avatar isPremium");
+    await broadcastSuperChat({
+      streamId,
+      user: donorUser,
+      amount: payment.amount / 100,
+      message: donationMessage,
+    });
+  }
 
   let updatedUser = null;
   if (payment.type === "PREMIUM_SUBSCRIPTION") {
