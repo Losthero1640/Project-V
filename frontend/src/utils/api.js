@@ -4,8 +4,20 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Send cookies along with requests
+  withCredentials: true,
 });
+
+// Request interceptor to attach Bearer token from localStorage as fallback for cookies
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -22,13 +34,12 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Response interceptor to handle token expiry (401 errors)
+// Response interceptor to handle token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Check if error is 401 (Unauthorized) and we haven't retried yet
     if (
       error.response &&
       error.response.status === 401 &&
@@ -41,40 +52,53 @@ api.interceptors.response.use(
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => {
+          .then((token) => {
+            if (token) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
             return api(originalRequest);
           })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
+      const storedRefreshToken = localStorage.getItem("refreshToken");
+
       try {
-        // Call the refresh-token endpoint (cookies are sent automatically)
-        await axios.post(
+        const refreshRes = await axios.post(
           `${API_BASE_URL}/users/refresh-token`,
-          {},
+          { refreshToken: storedRefreshToken || undefined },
           { withCredentials: true }
         );
 
-        isRefreshing = false;
-        processQueue(null);
+        const newAccessToken = refreshRes.data?.data?.accessToken;
+        const newRefreshToken = refreshRes.data?.data?.refreshToken;
 
-        // Retry the original request
+        if (newAccessToken) {
+          localStorage.setItem("accessToken", newAccessToken);
+        }
+        if (newRefreshToken) {
+          localStorage.setItem("refreshToken", newRefreshToken);
+        }
+
+        isRefreshing = false;
+        processQueue(null, newAccessToken);
+
+        if (newAccessToken) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        }
+
         return api(originalRequest);
       } catch (refreshError) {
         isRefreshing = false;
-        processQueue(refreshError);
+        processQueue(refreshError, null);
 
-        // If refresh fails, token is completely invalid/expired, redirect to login or clear auth state
-        console.error("Refresh token expired or invalid", refreshError);
-        
-        // Dispatch custom event to let AuthContext know to log out
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         window.dispatchEvent(new Event("auth-expired"));
-        
+
         return Promise.reject(refreshError);
       }
     }
@@ -82,4 +106,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-

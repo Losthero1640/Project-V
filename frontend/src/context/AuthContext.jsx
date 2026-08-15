@@ -12,7 +12,6 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const res = await api.get("/users/current-user");
-      // Check structure, res.data is ApiResponse, data is inside res.data.data
       if (res.data && res.data.data) {
         setUser(res.data.data);
       } else {
@@ -21,7 +20,6 @@ export const AuthProvider = ({ children }) => {
       setError(null);
     } catch (err) {
       setUser(null);
-      // Mute errors on startup (means user is just not logged in yet)
     } finally {
       setLoading(false);
     }
@@ -30,8 +28,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     fetchCurrentUser();
 
-    // Listen to token expiration event from Axios interceptor
     const handleAuthExpired = () => {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
       setUser(null);
       setLoading(false);
     };
@@ -57,6 +56,14 @@ export const AuthProvider = ({ children }) => {
 
       const res = await api.post("/users/login", payload);
       const data = res.data.data;
+      
+      if (data.accessToken) {
+        localStorage.setItem("accessToken", data.accessToken);
+      }
+      if (data.refreshToken) {
+        localStorage.setItem("refreshToken", data.refreshToken);
+      }
+
       setUser(data.user);
       return data;
     } catch (err) {
@@ -94,6 +101,8 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout request failed:", err);
     } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
       setUser(null);
       setLoading(false);
     }
